@@ -6,19 +6,43 @@ if (!defined('ABSPATH')) {
 
 if (!function_exists('ahx_wp_core_normalize_path')) {
     function ahx_wp_core_normalize_path(string $path): string {
-        $path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
-
-        $prefix = '';
-        if (preg_match('#^[A-Z]:' . preg_quote(DIRECTORY_SEPARATOR, '#') . '#i', $path, $matches)) {
-            $prefix = $matches[0];
-            $path = substr($path, strlen($prefix));
+        if (function_exists('wp_normalize_path')) {
+            return wp_normalize_path($path);
         }
 
-        $parts = array_filter(explode(DIRECTORY_SEPARATOR, $path), function ($part) {
-            return $part !== '';
-        });
+        $path = str_replace('\\', '/', (string) $path);
+        if ($path === '') {
+            return '';
+        }
 
-        return $prefix . implode(DIRECTORY_SEPARATOR, $parts);
+        $prefix = '';
+        if (preg_match('#^[A-Za-z]:/?#', $path, $matches)) {
+            $prefix = strtoupper(substr($matches[0], 0, 2));
+            $path = substr($path, strlen($matches[0]));
+        } elseif (strpos($path, '//') === 0) {
+            $prefix = '//';
+            $path = ltrim(substr($path, 2), '/');
+        } elseif (strpos($path, '/') === 0) {
+            $prefix = '/';
+            $path = ltrim($path, '/');
+        }
+
+        $parts = array_values(array_filter(explode('/', $path), function ($part) {
+            return $part !== '' && $part !== '.';
+        }));
+        $normalized = implode('/', $parts);
+
+        if ($prefix === '') {
+            return $normalized;
+        }
+        if ($prefix === '//') {
+            return $normalized === '' ? '//' : '//' . $normalized;
+        }
+        if ($prefix === '/') {
+            return $normalized === '' ? '/' : '/' . $normalized;
+        }
+
+        return $normalized === '' ? ($prefix . '/') : ($prefix . '/' . $normalized);
     }
 }
 

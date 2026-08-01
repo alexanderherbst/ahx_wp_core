@@ -2,7 +2,7 @@
 /*
 Plugin Name: AHX WP Core
 Description: Zentraler Core mit wiederverwendbaren Basisfunktionen fuer AHX-Plugins.
-Version: v0.1.0
+Version: v0.1.1
 Author: AHX
 */
 
@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('AHX_WP_CORE_VERSION', 'v0.1.0');
+define('AHX_WP_CORE_VERSION', 'v0.1.1');
 define('AHX_WP_CORE_FILE', __FILE__);
 define('AHX_WP_CORE_DIR', plugin_dir_path(__FILE__));
 

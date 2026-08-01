@@ -129,16 +129,20 @@ if (!class_exists('AHX_Core_Logging')) {
 }
 
 if (!function_exists('ahx_wp_core_log')) {
-    function ahx_wp_core_log($level, $message, $source = 'ahx_wp_core') {
+    function ahx_wp_core_log($level, $message, $source = 'ahx_wp_core', array $context = array()) {
         if (class_exists('AHX_Logging') && method_exists('AHX_Logging', 'get_instance')) {
             $logger = AHX_Logging::get_instance();
             $method = 'log_' . strtolower((string) $level);
             if (method_exists($logger, $method)) {
-                $logger->{$method}((string) $message, (string) $source);
+                $logger->{$method}((string) $message, (string) $source, $context);
+                return;
+            }
+            if (method_exists($logger, 'log_with_context')) {
+                $logger->log_with_context((string) $message, strtoupper((string) $level), (string) $source, $context);
                 return;
             }
             if (method_exists($logger, 'log')) {
-                $logger->log((string) $message, strtoupper((string) $level), (string) $source);
+                $logger->log((string) $message, strtoupper((string) $level), (string) $source, $context);
                 return;
             }
         }
@@ -156,6 +160,10 @@ if (!function_exists('ahx_wp_core_log')) {
             }
         }
 
-        error_log('[' . (string) $source . '][' . strtoupper((string) $level) . '] ' . (string) $message);
+        $context_json = !empty($context)
+            ? (function_exists('wp_json_encode') ? wp_json_encode($context) : json_encode($context))
+            : '';
+
+        error_log('[' . (string) $source . '][' . strtoupper((string) $level) . '] ' . (string) $message . ($context_json !== '' ? ' ' . $context_json : ''));
     }
 }
